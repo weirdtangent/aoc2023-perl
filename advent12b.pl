@@ -1,69 +1,85 @@
 #!/usr/bin/perl
 
+use strict;
+use warnings;
+
+use List::Util qw/any/;
+
 $| = 1;
 
 my $row = 0;
 my $sum = 0;
+my $count = 0;
 my %memo;
 
 open(FH, "./input12test2");
 while (my $data = <FH>) {
   chomp $data;
   $row++;
-  my ($status, $counts) = $data =~ /^(\S+) (\S+)/;
 
-  my $count;
-  %memo = undef;
-  try($row, 0, $status, $counts, $status =~ /(\?+)$/ ? length($1) : 0);
-  for (my $e=1; $e<5; $e++) {
-    $count = 0;
-    foreach (keys %{$memo{$e-1}}) {
-      try($row, $e, "$_?$status", $counts.(",$counts" x $e), $status =~ /(\?+)$/ ? length($1) : 0);
-    }
-    $count = scalar (keys %{$memo{$e}});
-    $memo{$e-1} = undef;
-  }
-  print "row $row got $count\n";
+  my ($string, $groups) = $data =~ /^(\S+) (\S+)/;
+  $string = "$string?$string?$string?$string?$string";
+  $groups = "$groups,$groups,$groups,$groups,$groups";
+
+  $count = solve($string, $groups, 0);
+  print "$row = $count\n";
   $sum += $count;
+  undef %memo;
 }
 print "$sum\n";
 
-sub try {
-  my ($row, $level, $string, $counts, $final) = @_;
+sub solve {
+  my ($string, $groups, $i) = @_;
 
-  if ($string !~ /\?/) {
-    my $valid = is_valid($string, $counts) ? 1 : 0;
-    if ($valid) {
-      $memo{$level}->{$string} = 1; # remember valid prefixes
-      if ($final && $level < 4) { # if final chars WERE ?s we need to check those again with the next longer string
-        $string =~ s/(.{$final,$final})$/'?' x length($1)/e;
-        $memo{$level}->{$string} = 1;
-      }
-    }
-    return $valid;
+  my $result = 0;
+  my @string = split('', $string);
+  my @groups = split(',', $groups);
+  my $lastpos = length($string)-1;
+
+  if (!@groups) {
+    return (any { /\#/ } @string[$i..$lastpos]) ? 0 : 1;
   }
 
-  # check if what we have so far is working, retun 0 if we've already failed
-  if (my ($check) = $string =~ /^\.*([\.\#]*)/) {
-    my @counts = split(',', $counts);
-    my @groups = map { length($_) } split(/\.+/, $check);
-    foreach (@groups) {
-      return 0 unless $_ <= shift @counts;
-    }
+  return 0 if $i >= $lastpos;
+  while ($string[$i] ne '?' && $string[$i] ne '#') {
+    $i++;
+    return 0 if $i >= $lastpos;
   }
 
-  my $try1 = $string;
-  my $try2 = $string;
-  $try1 =~ s/\?/\#/;
-  $try2 =~ s/\?/\./;
+  my $key = "$i ".scalar(@groups);
+  return $memo{$key} if exists $memo{$key};
 
-  return try($row, $level, $try1, $counts, $final) + try($row, $level, $try2, $counts, $final);
+  if (join('', @string[$i..$lastpos]) =~ /^[\?\#]{$groups[0]}/) {
+    $result += solve($string, join(',', @groups[1..@groups-1]), $i + $groups[0] + 1);
+  }
+
+  if ($string[$i] eq '?') {
+    $result += solve($string, $groups, $i + 1);
+  }
+
+  $memo{$key} = $result;
+  return $result;
 }
 
-sub is_valid {
-  my ($string, $counts) = @_;
+#
+# https://www.reddit.com/r/adventofcode/comments/18hg99r/2023_day_12_simple_tutorial_with_memoization/
+#
+# solve(springs, groups, cache, i):
+# 	if num groups is 0:
+# 		if any '#' remaining in springs return 0
+# 		else return 1
 
-  $string =~ s/^\.*//;
-  my $groups = join(',', map { length($_) } split(/\.+/, $string));
-  return $groups eq $counts ? 1 : 0;
-}
+# 	advance i to the next available '?' or '#'
+
+# 	if i > length of springs return 0
+
+# 	if (i, num groups) is in cache, return it
+
+# 	if we can fill the springs at i with the first group in groups:
+# 		recursively call with the groups after that at index: i + groupsize + 1
+
+# 	if the current spot is '?':
+# 		recursively call with current groups at the next index
+
+# 	add the result to the cache
+# 	return result
