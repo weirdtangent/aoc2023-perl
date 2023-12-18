@@ -38,6 +38,7 @@ sub astar {
   my $pq = new List::PriorityQueue;
   my @dirs = ('0,1', '1,0', '0,-1', '-1,0');
   my %cost;
+  my %tried;
 
   $pq->insert([$start,'START',0,'[0,0]'], 0);
 
@@ -63,14 +64,16 @@ sub astar {
         last if $r2 < 0 || $r2 > $h || $c2 < 0 || $c2 > $w; # can't go off the map
 
         my $next = "$r2,$c2";
-        next if grep { /\[$next\]/ } split(' ', $visited);
+        last if grep { /\[$next\]/ } split(' ', $visited);
         $newvisit .= ($newvisit ? ' ' : '') . "[$r2,$c2]"; # build list of individual steps
         $newcost += $weight{$next};
 
         next if $steps < 4; # we need to do each step, but none can be tested except 4-10
+        next if $tried{"$next-$dir-$steps"};
 
         my $total_cost = ($cost{"$current-$lastdir-$laststeps"}//0) + $newcost;
         if (!exists $cost{"$next-$dir-$steps"} || $total_cost < $cost{"$next-$dir-$steps"}) {
+          $tried{"$next-$dir-$steps"} = 1;
           $cost{"$next-$dir-$steps"} = $total_cost;
           my $prio = $total_cost + heuristic($next, $end);
           # print "  checking $steps $dir to $next for cost $total_cost and priority $prio\n";
