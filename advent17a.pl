@@ -54,6 +54,7 @@ sub astar {
     foreach my $dir (@dirs) {
       next if $dir eq $lastdir;
       my $newvisit = '';
+      my $newcost = 0;
       my ($r1,$c1) = split(',', $current);
       my ($d1,$d2) = split(',', $dir);
       my ($r2,$c2) = ($r1,$c1);
@@ -65,52 +66,18 @@ sub astar {
         my $next = "$r2,$c2";
         next if grep { /\[$next\]/ } split(' ', $visited);
         $newvisit .= ($newvisit ? ' ' : '') . "[$r2,$c2]"; # build list of individual steps
+        $newcost += $weight{$next};
 
-        my $new_cost = ($cost{"$current-$lastdir-$laststeps"}//0) + cost($current,$next);
-        if (!exists $cost{"$next-$dir-$steps"} || $new_cost < $cost{"$next-$dir-$steps"}) {
-          $cost{"$next-$dir-$steps"} = $new_cost;
-          my $prio = $new_cost + heuristic($next, $end);
-          # print "  checking $steps $dir to $next for cost $new_cost and priority $prio\n";
+        my $cost_total = ($cost{"$current-$lastdir-$laststeps"}//0) + $newcost;
+        if (!exists $cost{"$next-$dir-$steps"} || $cost_total < $cost{"$next-$dir-$steps"}) {
+          $cost{"$next-$dir-$steps"} = $cost_total;
+          my $prio = $cost_total + heuristic($next, $end);
+          # print "  checking $steps $dir to $next for cost $total_cost and priority $prio\n";
           $pq->insert([$next, $dir, $steps, $visited . ' ' . $newvisit], $prio);
         }
       }
     }
   }
-}
-
-sub cost {
-  my ($current, $next) = @_;
-
-  my $cost=0;
-
-  my ($r1, $c1) = split(',', $current);
-  my ($r2, $c2) = split(',', $next);
-
-  if ($r1 eq $r2) {
-    if ($c1 < $c2) {
-      for (my $c=$c1+1; $c<=$c2; $c++) {
-        $cost += $weight{"$r1,$c"};
-      }
-    } else {
-      for (my $c=$c1-1; $c>=$c2; $c--) {
-        $cost += $weight{"$r1,$c"};
-      }
-    }
-  } elsif ($c1 eq $c2) {
-    if ($r1 < $r2) {
-      for (my $r=$r1+1; $r<=$r2; $r++) {
-        $cost += $weight{"$r,$c1"};
-      }
-    } else {
-      for (my $r=$r1-1; $r>=$r2; $r--) {
-        $cost += $weight{"$r,$c1"};
-      }
-    }
-  } else {
-    die "moving from $current to $next is invalid?";
-  }
-
-  return $cost;
 }
 
 # Manhattan distance on a square grid
