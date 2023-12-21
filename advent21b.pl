@@ -10,8 +10,18 @@ I got lots and lots of hints from:
 
 https://www.reddit.com/r/adventofcode/comments/18nevo3/comment/keaidqr/?utm_source=share&utm_medium=web2x&context=3
 
-which ended up showing my loop was working - I just needed to use my results in a "quadratic fit calculator"
-to get the quadatric equation for my input, and then I could solve for my "x"
+which ended up showing my loop was working (though, not so fast - it takes ~30s to
+run for 327). I just needed to use my results in a "quadratic fit calculator" to get
+the quadatric equationfor my input, and then I could solve for my "x"
+
+And then, I learned from:
+
+https://www.reddit.com/r/adventofcode/comments/18nevo3/comment/keays65/?utm_source=share&utm_medium=web2x&context=3
+and
+https://www.reddit.com/r/adventofcode/comments/18nevo3/comment/keb8ud3/?utm_source=share&utm_medium=web2x&context=3
+
+how to turn my 3 (x,y) pairs [which end up being (327,q1); (196,q2); and (65,q3)] into
+a quadratic equation myself with something called "Lagrange's Interpolation formula"
 
 =cut
 
@@ -66,11 +76,28 @@ $limit = $alimit;
 print "$h x $w, starting at $posr,$posc for $alimit (and $blimit and $climit)\n\n";
 process(1, $posr, $posc);
 
-my $qc = true { /^$climit,/ } keys %landed;
-my $qb = true { /^$blimit,/ } keys %landed;
-my $qa = true { /^$alimit,/ } keys %landed;
-print "$qa, $qb, and $qc\ncalculate the quatric fit from those (see link) and then use the resulting quadratic formula to solve for x=$qx:\n";
-print "https://www.wolframalpha.com/input?i=quadratic+fit+calculator&assumption=%7B%22F%22%2C+%22QuadraticFitCalculator%22%2C+%22data%22%7D+-%3E%22%7B$qc%2C+$qb%2C+$qa%7D%22\n";
+my $q3 = true { /^$climit,/ } keys %landed;
+my $q2 = true { /^$blimit,/ } keys %landed;
+my $q1 = true { /^$alimit,/ } keys %landed;
+# print "$q1, $q2, and $q3\ncalculate the quatric fit from those (see link) and then use the resulting quadratic formula to solve for x=$qx:\n";
+# print "https://www.wolframalpha.com/input?i=quadratic+fit+calculator&assumption=%7B%22F%22%2C+%22QuadraticFitCalculator%22%2C+%22data%22%7D+-%3E%22%7B$qc%2C+$qb%2C+$qa%7D%22\n";
+
+# Lagrange's Interpolation formula for ax^2 + bx + c with x=[0,1,2] and y=[y0,y1,y2] we have
+#   f(x) = (x^2-3x+2) * y0/2 - (x^2-2x)*y1 + (x^2-x) * y2/2
+# so the coefficients are:
+# a = y0/2 - y1 + y2/2       (or (y0 - 2*y1 + y2)/2) )
+# b = -3*y0/2 + 2*y1 - y2/2 ( or (-3*y0 + 4*y1 - y2)/2) )
+# c = y0
+#
+# my y0 is $q3, y1 is $q2, y2 is $q1, so:
+my $qa = ($q3 - 2*$q2 + $q1) / 2;
+my $qb = (-3*$q3 + 4*$q2 - $q1) / 2;
+my $qc = $q3;
+
+print "\nwhich should show $qa x^2 + $qb x + $qc, x = $qx\n";
+
+my $result = $qa * $qx ** 2 + $qb * $qx + $qc;
+print "$result\n";
 
 
 sub process {
