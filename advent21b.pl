@@ -2,16 +2,16 @@
 
 =head2
 
-I knew I couldn't brute-force the answer, and I expected that once I solved one "map"
-then I could extrpolate that same answer for "any number of the same full maps PLUS
-the partial maps (if any)" - but that's where I got lost:
+I knew I couldn't brute-force the answer, BUT I expected that once I solved one
+full "map" then I could extrapolate that across "any number of the same full maps
+PLUS add the partial maps (if any)" - but that's where I got lost after 4 hours...
 
-I got lots and lots of help from:
+I got lots and lots of hints from:
 
 https://www.reddit.com/r/adventofcode/comments/18nevo3/comment/keaidqr/?utm_source=share&utm_medium=web2x&context=3
 
-which ended up showing my loop was working - I just needed a "quadratic fit calculator"
-to get the quadatric equation and then I could solve for my "x"
+which ended up showing my loop was working - I just needed to use my results in a "quadratic fit calculator"
+to get the quadatric equation for my input, and then I could solve for my "x"
 
 =cut
 
