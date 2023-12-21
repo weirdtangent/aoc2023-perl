@@ -19,6 +19,8 @@ And then, I learned from:
 https://www.reddit.com/r/adventofcode/comments/18nevo3/comment/keays65/?utm_source=share&utm_medium=web2x&context=3
 and
 https://www.reddit.com/r/adventofcode/comments/18nevo3/comment/keb8ud3/?utm_source=share&utm_medium=web2x&context=3
+and
+https://www.geeksforgeeks.org/lagrange-interpolation-formula/
 
 how to turn my 3 (x,y) pairs [which end up being (327,q1); (196,q2); and (65,q3)] into
 a quadratic equation myself with something called "Lagrange's Interpolation formula"
@@ -94,7 +96,7 @@ my $qa = ($q3 - 2*$q2 + $q1) / 2;
 my $qb = (-3*$q3 + 4*$q2 - $q1) / 2;
 my $qc = $q3;
 
-print "\nwhich should show $qa x^2 + $qb x + $qc, x = $qx\n";
+print "\nwe find: $qa x^2 + $qb x + $qc, x = $qx\n";
 
 my $result = $qa * $qx ** 2 + $qb * $qx + $qc;
 print "$result\n";
